@@ -1,0 +1,9 @@
+{
+  "assets": ["path-tools.sh"],
+  "commands": {
+    "path_append": "path_append.sh",
+    "path_prepend": "path_prepend.sh",
+    "path_contains": "path_contains.sh",
+    "path_remove": "path_remove.sh"
+  }
+}
