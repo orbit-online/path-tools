@@ -29,7 +29,7 @@ other variable (you can work around this prefixing a command with `PATH=...`).
 
 Trailing slashes on paths and literal comparators are removed before comparing.
 
-Commands that are passed a non-well-formed `$PATH` will throw an error.
+A non-well-formed `$PATH` will throw an error (see [`path_validate`](#path_validate) for details).
 
 ## Usage
 
@@ -73,6 +73,13 @@ When `ENABLE_GLOB = true` (`false` is the default) `ELM` is compared using
 #### `path_validate`
 
 Returns `$? = 0` if `$PATH` is well-formed, `$? = 1` if not.  
-When `$PATH` is not well-formed an explanation will written to `stderr`.  
+When `$PATH` is not well-formed an explanation will written to `stderr`.
+
+The following `$PATH` invariants are checked:
+
+- Does not contain nul bytes
+- Does not contain empty strings (i.e. does not start or end with `:`, and does contain a `::`)
+- Has no duplicate paths
+
 _Note_: `path_validate` is called when invoking any of the other functions, so
 you do not need to call it unless you want to explicitly validate `$PATH`.
