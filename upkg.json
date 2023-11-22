@@ -3,7 +3,10 @@
   "commands": {
     "path_append": "path_append.sh",
     "path_prepend": "path_prepend.sh",
+    "path_insert_after": "path_insert_after.sh",
+    "path_insert_before": "path_insert_before.sh",
+    "path_remove": "path_remove.sh",
     "path_contains": "path_contains.sh",
-    "path_remove": "path_remove.sh"
+    "path_validate": "path_remove.sh"
   }
 }

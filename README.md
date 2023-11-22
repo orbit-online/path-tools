@@ -5,14 +5,8 @@ Bash tools to modify `$PATH`.
 ## Contents
 
 - [Installation](#installation)
-- [Invariants](#invariants)
+- [Behavior](#behavior)
 - [Usage](#usage)
-  - [Functions](#functions)
-    - [`path_append`](#path_append-elm-move-after_glob)
-    - [`path_prepend`](#path_prepend-elm-move-before_glob)
-    - [`path_contains`](#path_contains-elm-glob)
-    - [`path_remove`](#path_remove-elm)
-  - [Examples](#examples)
 
 ## Installation
 
@@ -22,109 +16,63 @@ With [μpkg](https://github.com/orbit-online/upkg)
 upkg install -g orbit-online/path-tools@<VERSION>
 ```
 
-## Invariants
+## Behavior
 
-The following invariants are upheld:
+`path-tools` behaves idempotently. This means that running a command the first
+time _might_ change something, but _will not_ change something if you run it a
+second time immediately after that.
 
-- `$PATH` is printed to `stdout` instead of modifying it directly.
-- Path comparisons ignore trailing slashes
-- Any operation on `ELM` affects only its first occurrence
-- `$PATH` is assumed to be well-formed, this means:
-  - A leading or trailing `:` results in undefined behavior
-  - Zero-bytes in paths results in undefined behavior
+Results are output to `stdout`, `$PATH` is never modified.
 
-Trailing slashes may or may not be preserved, do not rely on any specific
-behavior regarding this.
+`$PATH` is an implicit parameter, you cannot use `path-tools` to modify any
+other variable (you can work around this prefixing a command with `PATH=...`).
+
+Trailing slashes on paths and literal comparators are removed before comparing.
+
+Commands that are passed a non-well-formed `$PATH` will throw an error.
 
 ## Usage
 
 The functions below are available both as commands and functions (by sourcing `path-tools.sh`).
 
-### Functions
+#### `path_append ELM`
 
-#### `path_append ELM [MOVE] [AFTER_GLOB]`
+Append `ELM` or move it to the end if present.
 
-Append `ELM` or, if set, insert right after last occurrence of `AFTER_GLOB`.  
-When `MOVE = false` (the default) leave `ELM` in current position if already present.  
-When `MOVE = true` and `ELM` is present move it to the last position, or if set,
-right after last occurrence of `AFTER_GLOB`.  
-`AFTER_GLOB` is compared using `[[ ${path%/} = $AFTER_GLOB ]]`, meaning globs
-(like `/usr/**/bin`) work.
+#### `path_prepend ELM`
 
-#### `path_prepend ELM [MOVE] [BEFORE_GLOB]`
+Append `ELM` or move it to the beginning if present.
 
-Append `ELM` or, if set, insert right before first occurrence of `BEFORE_GLOB`.  
-When `MOVE = false` (the default) leave `ELM` in current position if already present.  
-When `MOVE = true` and `ELM` is present move it to the last position, or if set,
-right before first occurrence of `BEFORE_GLOB`.
-`BEFORE_GLOB` is compared using `[[ ${path%/} = $BEFORE_GLOB ]]`, meaning globs
-(like `/usr/**/bin`) work.
+#### `path_insert_after ELM GLOB`
 
-#### `path_contains ELM [GLOB]`
+Insert/move `ELM` immediately after the last occurrence of `GLOB`.  
+Append `ELM` if no `GLOB` matches were found.  
+`GLOB` is compared using `[[ ${path%/} = $GLOB ]]`, meaning globs
+like `/usr/**/bin?(/)` work.
+
+#### `path_insert_before ELM GLOB`
+
+Insert/move `ELM` immediately before the first occurrence of `GLOB`.  
+**Append** `ELM` if no `GLOB` matches were found.  
+`GLOB` is compared using `[[ ${path%/} = $GLOB ]]`, meaning globs
+like `/usr/**/bin?(/)` work.
+
+#### `path_remove ELM [ENABLE_GLOB]`
+
+Remove all matches for `ELM`.  
+Do nothing if `ELM` is not present.  
+When `ENABLE_GLOB = true` (`false` is the default) `ELM` is compared using
+`[[ ${path%/} = ELM ]]`, meaning globs like `/usr/**/bin?(/)` work.
+
+#### `path_contains ELM [ENABLE_GLOB]`
 
 Returns `$? = 0` if `ELM` is present, `$? = 1` if not.  
-When `GLOB = true` (`false` is the default) `ELM` is compared using
-`[[ ${path%/} = ELM ]]`, meaning globs (like `/usr/**/bin`) work.
+When `ENABLE_GLOB = true` (`false` is the default) `ELM` is compared using
+`[[ ${path%/} = ELM ]]`, meaning globs like `/usr/**/bin?(/)` work.
 
-#### `path_remove ELM`
+#### `path_validate`
 
-Remove first occurrence of `ELM`.  
-Do nothing if `ELM` is not present.
-
-### Examples
-
-#### Append `DIR`
-
-```
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(path_append DIR); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin:DIR
-$ ^ exists, moved to end... v doesn't exist, appended (same result)
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(path_append DIR); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin:DIR
-```
-
-#### Append/move `DIR` to end
-
-```
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(path_append DIR true); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin:DIR
-$ ^ exists, moved to end... v doesn't exist, appended (same result)
-$ PATH=/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin
-$ PATH=$(path_append DIR true); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin:DIR
-```
-
-#### Prepend/move `DIR` to beginning
-
-```
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(path_prepend DIR true); echo $PATH
-DIR:/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin
-$ ^ exists, moved to beginning... v doesn't exist, prepended (same result)
-$ PATH=/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin
-$ PATH=$(path_prepend DIR true); echo $PATH
-DIR:/usr/sbin:/usr/local/bin:/usr/bin:/usr/sbin
-```
-
-#### Move `DIR` after any path ending in `/bin`
-
-```
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(path_append DIR true '*/bin'); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:DIR:/usr/sbin
-```
-
-#### Move `/usr/bin` before `DIR` if it exists
-
-```
-PATH=/usr/sbin:/usr/local/bin:DIR:/usr/bin:/usr/sbin
-$ PATH=$(if path_contains /usr/bin; then path_prepend /usr/bin true DIR; else echo $PATH; fi); echo $PATH
-/usr/sbin:/usr/local/bin:/usr/bin:DIR:/usr/sbin
-$ # ^ exists, moved... v doesn't exist, not added
-$ PATH=/usr/sbin:/usr/local/bin:DIR:/usr/sbin
-$ PATH=$(if path_contains /usr/bin; then path_prepend /usr/bin true DIR; else echo $PATH; fi); echo $PATH
-/usr/sbin:/usr/local/bin:DIR:/usr/sbin
-```
+Returns `$? = 0` if `$PATH` is well-formed, `$? = 1` if not.  
+When `$PATH` is not well-formed an explanation will written to `stderr`.  
+_Note_: `path_validate` is called when invoking any of the other functions, so
+you do not need to call it unless you want to explicitly validate `$PATH`.
