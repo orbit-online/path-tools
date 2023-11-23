@@ -81,17 +81,17 @@ path_validate() {
   [[ $# -eq 0 ]] || { printf "Usage: path_validate\n" >&2; return 1; }
   local ret=0
   if [[ $PATH = *'\0'* ]]; then
-    printf "path-tools.sh: \$PATH contains nul bytes\n"
+    printf "path-tools.sh: \$PATH contains nul bytes\n" >&2
     ret=1
   fi
   if [[ $PATH =~ ^:|:$|:: ]]; then
-    printf "path-tools.sh: \$PATH contains empty strings\n"
+    printf "path-tools.sh: \$PATH contains empty strings\n" >&2
     ret=1
   fi
   local duplicates=(); IFS=$'\n' readarray -t duplicates < <(tr ':' $'\n' <<<"$PATH" | sed 's%\(.\)/$%\1%' | sort | uniq -D | uniq)
   if [[ ${#duplicates[@]} -ne 0 ]]; then
-    printf "path-tools.sh: \$PATH contains duplicate paths:\n"
-    printf "  %s\n" "${duplicates[@]}"
+    printf "path-tools.sh: \$PATH contains duplicate paths:\n" >&2
+    printf "  %s\n" "${duplicates[@]}" >&2
     ret=1
   fi
   return $ret
