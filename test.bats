@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=2030,2031
 
 setup_file() {
   bats_require_minimum_version 1.5.0
@@ -28,6 +29,12 @@ setup_file() {
 @test 'path_insert_after with glob match inserts after last match' {
   run path_insert_after.sh TEST '*/?(.)local/*'
   [ "$output" = "$BATS_TEST_DIRNAME:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:TEST:/usr/sbin:/usr/bin:/sbin:/bin" ]
+}
+
+@test 'path_insert_after works with invalid \$PATH' {
+  PATH=$BATS_TEST_DIRNAME:$HOME/.local/bin:/usr/sbin::/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
+  run path_insert_after.sh TEST '*/?(.)local/*'
+  [ "$output" = "$BATS_TEST_DIRNAME:$HOME/.local/bin:/usr/sbin::/usr/local/sb"$'\0'"in:/usr/local/bin:TEST:/usr/sbin:/usr/bin:/sbin:/bin:" ]
 }
 
 @test 'path_insert_before with match inserts before match' {
@@ -84,14 +91,4 @@ setup_file() {
 @test 'path_validate fails $PATH with duplicates' {
   PATH=$PATH:/usr/local/bin
   run -1 path_validate.sh
-}
-
-@test 'all functions validate $PATH' {
-  PATH=$PATH:/usr/local/bin
-  run -1 path_append.sh TEST
-  run -1 path_prepend.sh TEST
-  run -1 path_insert_after.sh TEST /usr/bin
-  run -1 path_insert_before.sh TEST /usr/local/bin
-  run -1 path_remove.sh /usr/local/bin
-  run -1 path_contains.sh /usr/local/bin
 }

@@ -29,8 +29,6 @@ other variable (you can work around this prefixing a command with `PATH=...`).
 
 Trailing slashes on paths and literal comparators are removed before comparing.
 
-A non-well-formed `$PATH` will throw an error (see [`path_validate`](#path_validate) for details).
-
 ## Usage
 
 The functions below are available both as commands and functions (by sourcing `path-tools.sh`).
@@ -80,6 +78,3 @@ The following `$PATH` invariants are checked:
 - Does not contain nul bytes
 - Does not contain empty strings (i.e. does not start or end with `:`, and does contain a `::`)
 - Has no duplicate paths
-
-_Note_: `path_validate` is called when invoking any of the other functions, so
-you do not need to call it unless you want to explicitly validate `$PATH`.

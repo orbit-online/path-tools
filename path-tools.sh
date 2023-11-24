@@ -52,7 +52,6 @@ path_insert_before() {
 
 path_remove() {
   [[ -n $1 && $2 =~ ^|true|false$ && $# -le 2 ]] || { printf "Usage: path_remove ELM [ENABLE_GLOB]\n" >&2; return 1; }
-  path_validate
   local path new_path
   while IFS= read -r -d ':' path; do
     # shellcheck disable=2053
@@ -65,7 +64,6 @@ path_remove() {
 
 path_contains() {
   [[ -n $1 || ! $2 =~ ^|true|false$ && $# -le 2 ]] || { printf "Usage: path_contains ELM [ENABLE_GLOB]\n" >&2; return 1; }
-  path_validate
   local path
   while IFS= read -r -d ':' path; do
     # shellcheck disable=2053
