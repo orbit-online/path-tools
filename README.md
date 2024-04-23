@@ -10,11 +10,7 @@ Bash tools to modify `$PATH`.
 
 ## Installation
 
-With [μpkg](https://github.com/orbit-online/upkg)
-
-```
-upkg install -g orbit-online/path-tools@<VERSION>
-```
+See [the latest release](https://github.com/orbit-online/path-tools/releases/latest) for instructions.
 
 ## Behavior
 
