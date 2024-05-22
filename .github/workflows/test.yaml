@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Run tests
-      run: bats . --formatter tap13 tests | tee results.tap
+      run: bats --formatter tap13 . | tee results.tap
     - name: Generate test summary
       uses: test-summary/action@v2
       with:
