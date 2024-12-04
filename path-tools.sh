@@ -13,41 +13,59 @@ path_prepend() {
 }
 
 path_insert_after() {
-  [[ -n $1 && -n $2 && $# -eq 2 ]] || { printf "Usage: path_insert_after ELM GLOB\n" >&2; return 1; }
-  local new_path new_path_inner path rev_path matched=false
-  new_path=$(path_remove "$1")
-  while IFS= read -r -d ':' rev_path; do
-    path=$(rev <<<"$rev_path")
-    # shellcheck disable=2053
-    if [[ ${path%/} != $2 ]] || $matched; then
-      new_path_inner=$new_path_inner:$rev_path
-    else
-      new_path_inner=$new_path_inner:$(rev <<<"$1"):$rev_path
-      matched=true
+  local new_path new_path_inner path rev_path prepend=false matched=false
+  if [[ $1 == '-p' ]]; then prepend=true; shift; fi
+  [[ -n $1 && $# -le 2 ]] || { printf "Usage: path_insert_after [-p] ELM [GLOB]\n" >&2; return 1; }
+  if [[ -n $2 ]]; then
+    new_path=$(path_remove "$1")
+    while IFS= read -r -d ':' rev_path; do
+      path=$(rev <<<"$rev_path")
+      # shellcheck disable=2053
+      if [[ ${path%/} != $2 ]] || $matched; then
+        new_path_inner=$new_path_inner:$rev_path
+      else
+        new_path_inner=$new_path_inner:$(rev <<<"$1"):$rev_path
+        matched=true
+      fi
+    done < <(rev <<<":$new_path")
+    new_path_inner=$(rev <<<"$new_path_inner")
+    new_path=${new_path_inner%:}
+    if ! $matched; then
+      if $prepend; then new_path=$1:$new_path
+      else new_path=$new_path:$1; fi
     fi
-  done < <(rev <<<":$new_path")
-  new_path_inner=$(rev <<<"$new_path_inner")
-  new_path=${new_path_inner%:}
-  $matched || new_path=$new_path:$1
-  printf "%s\n" "$new_path"
+    printf "%s\n" "$new_path"
+  else
+    if $prepend; then path_prepend "$1"
+    else path_append "$1"; fi
+  fi
 }
 
 path_insert_before() {
-  [[ -n $1 && -n $2 && $# -eq 2 ]] || { printf "Usage: path_insert_before ELM GLOB\n" >&2; return 1; }
-  local new_path new_path_inner path matched=false
-  new_path=$(path_remove "$1")
-  while IFS= read -r -d ':' path; do
-    # shellcheck disable=2053
-    if [[ ${path%/} != $2 ]] || $matched; then
-      new_path_inner=$new_path_inner:$path
-    else
-      new_path_inner=$new_path_inner:$1:$path
-      matched=true
+  local new_path new_path_inner path prepend=false matched=false
+  if [[ $1 == '-p' ]]; then prepend=true; shift; fi
+  [[ -n $1 && $# -le 2 ]] || { printf "Usage: path_insert_before [-p] ELM [GLOB]\n" >&2; return 1; }
+  if [[ -n $2 ]]; then
+    new_path=$(path_remove "$1")
+    while IFS= read -r -d ':' path; do
+      # shellcheck disable=2053
+      if [[ ${path%/} != $2 ]] || $matched; then
+        new_path_inner=$new_path_inner:$path
+      else
+        new_path_inner=$new_path_inner:$1:$path
+        matched=true
+      fi
+    done <<<"$new_path:"
+    new_path=${new_path_inner#:}
+    if ! $matched; then
+      if $prepend; then new_path=$1:$new_path
+      else new_path=$new_path:$1; fi
     fi
-  done <<<"$new_path:"
-  new_path=${new_path_inner#:}
-  $matched || new_path=$new_path:$1
-  printf "%s\n" "$new_path"
+    printf "%s\n" "$new_path"
+  else
+    if $prepend; then path_prepend "$1"
+    else path_append "$1"; fi
+  fi
 }
 
 path_remove() {

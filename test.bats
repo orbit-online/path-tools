@@ -26,6 +26,16 @@ setup_file() {
   [ "$output" = "$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:TEST" ]
 }
 
+@test 'path_insert_after -p without match prepends' {
+  run path_insert_after -p TEST UNMATCHED
+  [ "$output" = "TEST:$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" ]
+}
+
+@test 'path_insert_after empty glob appends' {
+  run path_insert_after TEST
+  [ "$output" = "$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:TEST" ]
+}
+
 @test 'path_insert_after with glob match inserts after last match' {
   run path_insert_after TEST '*/?(.)local/*'
   [ "$output" = "$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:TEST:/usr/sbin:/usr/bin:/sbin:/bin" ]
@@ -44,6 +54,16 @@ setup_file() {
 
 @test 'path_insert_before without match appends' {
   run path_insert_before TEST UNMATCHED
+  [ "$output" = "$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:TEST" ]
+}
+
+@test 'path_insert_before -p without match prepends' {
+  run path_insert_before -p TEST UNMATCHED
+  [ "$output" = "TEST:$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" ]
+}
+
+@test 'path_insert_before with empty glob appends' {
+  run path_insert_before TEST
   [ "$output" = "$BATS_TEST_DIRNAME/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:TEST" ]
 }
 

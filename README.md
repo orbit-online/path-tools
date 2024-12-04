@@ -37,17 +37,17 @@ Append `ELM` or move it to the end if present.
 
 Append `ELM` or move it to the beginning if present.
 
-#### `path_insert_after ELM GLOB`
+#### `path_insert_after [-p] ELM [GLOB]`
 
 Insert/move `ELM` immediately after the last occurrence of `GLOB`.  
-Append `ELM` if no `GLOB` matches were found.  
+Append `ELM` if no `GLOB` matches were found, prepend if `-p` is set.  
 `GLOB` is compared using `[[ ${path%/} = $GLOB ]]`, meaning globs
 like `/usr/**/bin?(/)` work.
 
-#### `path_insert_before ELM GLOB`
+#### `path_insert_before [-p] ELM [GLOB]`
 
 Insert/move `ELM` immediately before the first occurrence of `GLOB`.  
-**Append** `ELM` if no `GLOB` matches were found.  
+**Append** `ELM` if no `GLOB` matches were found, prepend if `-p` is set.  
 `GLOB` is compared using `[[ ${path%/} = $GLOB ]]`, meaning globs
 like `/usr/**/bin?(/)` work.
 
